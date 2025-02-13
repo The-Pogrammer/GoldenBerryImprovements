@@ -1,0 +1,12 @@
+GOLDENBERRYIMPROVEMENTS_SETTINGS_DISABLE_RETRY=
+This disables the retry in the menu when you have the golden berry
+so you don't accidentally restart. (Note: if you turn this on and
+back off, retry will not get reset. Something else like exiting
+the chapter must be done to reset it.)
+
+GOLDENBERRYIMPROVEMENTS_SETTINGS_SPEEDUP_DOORS=
+This makes door hitboxes instantly vanish when you have the golden
+berry, though the sound and animation don't reflect that.
+
+GOLDENBERRYIMPROVEMENTS_SETTINGS_SKIP_CUTSCENES=
+This skips cutscenes instantly when you have the golden berry.
