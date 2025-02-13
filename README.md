@@ -7,6 +7,7 @@ GoldenBerryImprovements is a mod for Celeste that makes golden berry attempts qu
 - Doors open instantly when you have the golden berry.
 - Cutscenes skip instantly when you have the golden berry.
 - Retry is disabled when you have the golden berry.
+
 All of these features are enabled by default, but can be disabled in the mod settings.
 
 ## Acknowledgments
