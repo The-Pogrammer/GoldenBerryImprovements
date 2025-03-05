@@ -1,6 +1,6 @@
 - Name: GoldenBerryImprovements
-  Version: 1.0.0
+  Version: 1.1.0
   DLL: bin/GoldenBerryImprovements.dll
   Dependencies:
     - Name: EverestCore
-      Version: 1.5326.0
+      Version: 1.5395.0
