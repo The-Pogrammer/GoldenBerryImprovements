@@ -98,17 +98,22 @@ public class GoldenBerryImprovementsModule : EverestModule {
         return prev;
     }
 
-    private void modClutterSwitch(ILContext il)
+    private static void modClutterSwitch(ILContext il)
     {
         ILCursor cursor = new ILCursor(il);
 
         if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdcR4(0.2f)))
         {
             cursor.Emit(OpCodes.Pop);
-            cursor.Emit(OpCodes.Ldc_R4, 0f);
+            cursor.EmitDelegate(GetClutterSwitchSpeed);
         }
     }
-    
+
+    private static float GetClutterSwitchSpeed()
+    {
+        return HasGoldenBerry(Engine.Scene) ? 0f : 0.2f;
+    }
+
     private static void LockBlock_UnlockRoutine(ILContext ctx, FieldInfo _this)
     {
         ILCursor cursor = new(ctx);
@@ -129,15 +134,32 @@ public class GoldenBerryImprovementsModule : EverestModule {
     }
     private static float GoldenCutInHalf(float prev, Entity e)
     {
-        if (Settings.SpeedupDoors)
+        if (Settings.SpeedupDoors) // Only applies to LockBlock & Key
         {
-            Player p = e?.Scene?.Tracker.GetEntity<Player>();
-            if (p == null) return prev;
-            foreach (Follower f in p.Leader.Followers)
+            if (HasGoldenBerry(e?.Scene))
             {
-                if (f.Entity is Strawberry s && s.Golden && !s.Winged) return 0;//prev / 0f;
+                return 0;
             }
         }
         return prev;
+    }
+
+    private static bool HasGoldenBerry(Scene scene)
+    {
+        if (scene is Level level)
+        {
+            Player p = level.Tracker.GetEntity<Player>();
+            if (p != null)
+            {
+                foreach (Follower f in p.Leader.Followers)
+                {
+                    if (f.Entity is Strawberry s && s.Golden && !s.Winged)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
