@@ -5,23 +5,26 @@ using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using Mono.Cecil.Cil;
-using On.Celeste;
+using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 
 namespace Celeste.Mod.GoldenBerryImprovements;
 
-public class GoldenBerryImprovementsModule : EverestModule {
+public class GoldenBerryImprovementsModule : EverestModule
+{
     public static GoldenBerryImprovementsModule Instance { get; private set; }
 
     public override Type SettingsType => typeof(GoldenBerryImprovementsModuleSettings);
-    public static GoldenBerryImprovementsModuleSettings Settings => (GoldenBerryImprovementsModuleSettings) Instance._Settings;
+    public static GoldenBerryImprovementsModuleSettings Settings => (GoldenBerryImprovementsModuleSettings)Instance._Settings;
 
     public override Type SessionType => typeof(GoldenBerryImprovementsModuleSession);
-    public static GoldenBerryImprovementsModuleSession Session => (GoldenBerryImprovementsModuleSession) Instance._Session;
+    public static GoldenBerryImprovementsModuleSession Session => (GoldenBerryImprovementsModuleSession)Instance._Session;
 
     public override Type SaveDataType => typeof(GoldenBerryImprovementsModuleSaveData);
-    public static GoldenBerryImprovementsModuleSaveData SaveData => (GoldenBerryImprovementsModuleSaveData) Instance._SaveData;
+    public static GoldenBerryImprovementsModuleSaveData SaveData => (GoldenBerryImprovementsModuleSaveData)Instance._SaveData;
 
-    public GoldenBerryImprovementsModule() {
+    public GoldenBerryImprovementsModule()
+    {
         Instance = this;
 #if DEBUG
         // debug builds use verbose logging
@@ -32,7 +35,12 @@ public class GoldenBerryImprovementsModule : EverestModule {
 #endif
     }
 
+    public static string LoggerTag = nameof(GoldenBerryImprovementsModule);
     private static ILHook lockBlock_UnlockRoutine, key_UseRoutine, absorbRoutineHook;
+
+    private static List<MTexture> arrowSprites = [];
+    private static List<UIelement> uiElements = [];
+    private static Dictionary<int, MTexture> TextSprites = [];
 
     public override void Load()
     {
@@ -41,31 +49,77 @@ public class GoldenBerryImprovementsModule : EverestModule {
             modAbsorbRoutine
         );
 
+        On.Celeste.Player.Die += newOnDie;
+        On.Celeste.Checkpoint.Added += newAdded;
+
         Everest.Events.LevelLoader.OnLoadingThread += AddController;
         IL.Celeste.ClutterSwitch.OnDashed += modClutterSwitch;
-        
+
         //door speedup done by Viv!! (vividescence)
 
         MethodInfo m1 = typeof(LockBlock).GetMethod("UnlockRoutine", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetStateMachineTarget();
         lockBlock_UnlockRoutine = new ILHook(m1, (il) => LockBlock_UnlockRoutine(il, m1.DeclaringType.GetField("<>4__this")));
         MethodInfo m2 = typeof(Key).GetMethod("UseRoutine", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).GetStateMachineTarget();
         key_UseRoutine = new ILHook(m2, (il) => Key_UseRoutine(il, m2.DeclaringType.GetField("<>4__this")));
+
+        uiElements.Add(new UIelement("leftArrow", new Vector2(0.7f, 0.95f), 0.7f, true));
+        uiElements.Add(new UIelement("rightArrow", new Vector2(0.3f, 0.95f), 0.7f));
     }
 
     public override void Unload()
     {
         IL.Celeste.ClutterSwitch.OnDashed -= modClutterSwitch;
+        On.Celeste.Player.Die -= newOnDie;
+        On.Celeste.Checkpoint.Added -= newAdded;
 
         Everest.Events.LevelLoader.OnLoadingThread -= AddController;
         absorbRoutineHook?.Dispose();
-        
+
         lockBlock_UnlockRoutine?.Dispose();
         key_UseRoutine?.Dispose();
     }
 
+    private void newAdded(On.Celeste.Checkpoint.orig_Added orig, Checkpoint self, Scene scene)
+    {
+        orig(self, scene);
+        Level level = scene as Level;
+        if (Settings.SegmentingMode)
+        {
+            level.Session.StartCheckpoint = level.Session.Level;
+        }
+    }
+
+    private PlayerDeadBody newOnDie(On.Celeste.Player.orig_Die orig, Player self, Vector2 direction, bool evenIfInvincible, bool registerDeathInStats)
+    {
+        PlayerDeadBody deadBody = orig(self, direction, evenIfInvincible, registerDeathInStats);
+        if (deadBody != null)
+        {
+            if (Settings.SegmentingMode && !deadBody.HasGolden)
+            {
+                deadBody.DeathAction += () =>
+                {
+                    Engine.Scene = new LevelExit(LevelExit.Mode.Restart, (deadBody.Scene as Level).Session);
+                };
+            }
+        }
+        return deadBody;
+    }
+
     private static void AddController(Level level)
     {
-        level.Add(new Controller());
+        Controller controller;
+        level.Add(controller = new Controller());
+
+        
+        foreach (var element in uiElements)
+        {
+            level.Add(element);
+        }
+
+        level.Add(new TextElement("checkpointCount", new Vector2(0.5f, 0.95f), 0.65f, 2));
+        controller.giveUIlist(uiElements);
+
+        
     }
 
     private void modAbsorbRoutine(ILContext il)

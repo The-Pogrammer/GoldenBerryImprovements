@@ -10,3 +10,6 @@ berry, though the sound and animation don't reflect that.
 
 GOLDENBERRYIMPROVEMENTS_SETTINGS_SKIP_CUTSCENES=
 This skips cutscenes instantly when you have the golden berry.
+
+GOLDENBERRYIMPROVEMENTS_SETTINGS_SEGMENTING_MODE=
+This will set the last checkpoint to your spawnpoint so you can practice doing each checkpoint deathless.
