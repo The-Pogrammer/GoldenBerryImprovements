@@ -26,13 +26,18 @@ namespace Celeste.Mod.GoldenBerryImprovements
             this.padding = padding;
             Depth = Depths.Top;
 
-            AddTag(Tags.Global);
 
             for (int i = 0; i < 10; i++)
             {
                 Sprites.Add(i, GFX.Game[i.ToString()]);
             }
             Sprites.Add(10, GFX.Game["slash"]);
+        }
+
+        public override void Added(Scene scene)
+        {
+            base.Added(scene);
+            AddTag(Tags.Global);
         }
 
         public void setText(string text)

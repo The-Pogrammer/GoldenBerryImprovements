@@ -62,6 +62,11 @@ public class GoldenBerryImprovementsModule : EverestModule
         MethodInfo m2 = typeof(Key).GetMethod("UseRoutine", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).GetStateMachineTarget();
         key_UseRoutine = new ILHook(m2, (il) => Key_UseRoutine(il, m2.DeclaringType.GetField("<>4__this")));
 
+        
+    }
+    public override void LoadContent(bool firstLoad)
+    {
+        base.LoadContent(firstLoad);
         uiElements.Add(new UIelement("leftArrow", new Vector2(0.7f, 0.95f), 0.7f, true));
         uiElements.Add(new UIelement("rightArrow", new Vector2(0.3f, 0.95f), 0.7f));
     }

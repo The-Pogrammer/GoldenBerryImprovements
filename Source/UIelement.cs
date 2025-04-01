@@ -30,6 +30,12 @@ namespace Celeste.Mod.GoldenBerryImprovements
             }
             
 
+            
+        }
+
+        public override void Added(Scene scene)
+        {
+            base.Added(scene);
             AddTag(Tags.Global);
         }
 
